@@ -3,6 +3,32 @@ const bcrypt = require('bcrypt')
 
 class User {
 
+    async findAll() {
+        try {
+            let users = knex.select(["id", "name", "email", "role"]).from('users')
+            return users
+
+        } catch(err) {
+            console.log(err)
+            return []
+        }
+    }
+
+    async findById(id) {
+        try {
+            let user = knex.select(["id", "name", "email", "role"]).where({id}).from('users')
+            if(user.length > 0) {
+                return undefined
+            } else {
+                return user
+            }
+
+        } catch(err) {
+            console.log(err)
+            return undefined
+        }
+    }
+
     async signIn(user) {
         try {
 
@@ -14,20 +40,20 @@ class User {
                 role: 0
             }).into('users')
 
-        } catch(err) {
+        } catch (err) {
             console.log(err)
         }
     }
 
-    async validationEmail(user) {
+    async validationEmail(email) {
         try {
-            let userEmail = await knex.select("*").from('users').where({email: user.email})
-            if(userEmail.length > 0) {
+            let userEmail = await knex.select("*").from('users').where({ email })
+            if (userEmail.length > 0) {
                 return true
             } else {
                 return false
             }
-        } catch(err) {
+        } catch (err) {
             console.log(err)
             return false
         }

@@ -6,5 +6,7 @@ let UserController = require('../controllers/UserController')
 
 router.get('/', HomeController.index)
 router.post('/user', UserController.create)
+router.get('/user', UserController.findAllUsers)
+router.get('/user/:id', UserController.findUserById)
 
 module.exports = router
