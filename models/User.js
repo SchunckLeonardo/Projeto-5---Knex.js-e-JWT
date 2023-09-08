@@ -8,7 +8,7 @@ class User {
             let users = knex.select(["id", "name", "email", "role"]).from('users')
             return users
 
-        } catch(err) {
+        } catch (err) {
             console.log(err)
             return []
         }
@@ -16,14 +16,14 @@ class User {
 
     async findById(id) {
         try {
-            let user = knex.select(["id", "name", "email", "role"]).where({id}).from('users')
-            if(user.length > 0) {
+            let user = knex.select(["id", "name", "email", "role"]).where({ id }).from('users')
+            if (user.length > 0) {
                 return undefined
             } else {
                 return user
             }
 
-        } catch(err) {
+        } catch (err) {
             console.log(err)
             return undefined
         }
@@ -42,6 +42,56 @@ class User {
 
         } catch (err) {
             console.log(err)
+        }
+    }
+
+    async updateUser(user) {
+        let editUser = {}
+
+        let findedUser = await this.findById(user.id)
+        let registeredEmail = await this.validationEmail(user.email)
+
+        if(findedUser != undefined) {
+
+            if(user.email != undefined) {
+                if(user.email != findedUser.email) {
+                    if(registeredEmail) {
+                        return {status: false, err: "O e-mail já está cadastrado!"}
+                    } else {
+                        editUser.email = user.email
+                    }
+                }
+            }
+
+            if(user.name != undefined) {
+                editUser.name = user.name
+            }
+
+            if(user.role != undefined) {
+                editUser.role = user.role
+            }
+
+            try {
+                await knex.update(editUser).where({id: user.id}).from('users')
+                return {status: true}
+            } catch(err) {
+                console.log(err)
+                return {status: false}
+            }
+
+        } else {
+            return {status: false, err: "O usuário não foi encontrado"}
+        }
+
+    }
+
+    async deleteUser(id) {
+        try {
+            await knex.select("*").where({id}).from("users").del()
+            return true
+        } catch(err) {
+            console.log(err)
+            return false
         }
     }
 

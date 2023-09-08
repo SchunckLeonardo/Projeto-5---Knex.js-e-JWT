@@ -7,17 +7,25 @@ class UserController {
             let allUsers = await User.findAll()
             res.status(200)
             res.json(allUsers)
-        } catch(err) {
+        } catch (err) {
             console.log(err)
         }
+    }
+
+    async findUserByEmail(req, res) {
+        let email = req.params.email
+
+        let user = await User.findByEmail(email)
+        res.status(200)
+        res.json(user)
     }
 
     async findUserById(req, res) {
         let id = req.params.id
 
-        if(isNaN(id)) {
+        if (isNaN(id)) {
             res.status(400)
-            res.json({err: "O ID tem que ser um número"})
+            res.json({ err: "O ID tem que ser um número" })
             return
         }
 
@@ -63,16 +71,42 @@ class UserController {
 
         let emailExist = await User.validationEmail(user.email)
 
-        if(emailExist) {
+        if (emailExist) {
             res.status(406)
-            res.json({err: "O e-mail já está cadastrado!"})
+            res.json({ err: "O e-mail já está cadastrado!" })
             return
         }
 
-        
+
         await User.signIn(user)
         res.status(200)
         res.send("Tudo OK!")
+    }
+
+    async update(req, res) {
+        let {name, email, role} = req.body
+        let id = req.params.id
+        let user = {
+            id,
+            name,
+            email,
+            role
+        }
+
+        if(isNaN(id)) {
+            res.status(404)
+            res.json({err: "O id tem que ser um número"})
+            return
+        }
+
+        let updatedUser = await User.updateUser(user)
+        if(updatedUser.status) {
+            res.status(200)
+            res.send("Atualizado com sucesso!")
+        } else {
+            res.status(406)
+            res.send(updatedUser.err)
+        }
     }
 
 }
