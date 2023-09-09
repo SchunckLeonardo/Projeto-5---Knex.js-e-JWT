@@ -1,6 +1,10 @@
 let User = require('../models/User')
 let PasswordToken = require('../models/PasswordToken')
 let Validation = require('../models/Validation')
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
+
+let secret = 'asjfoiajwifawiopfmwmfpoawnmfn2i04jn1i02ndkamwpoi'
 
 class UserController {
 
@@ -152,6 +156,31 @@ class UserController {
             res.status(406)
             res.send(isValidToken.err)
         }
+    }
+
+    async login(req, res) {
+        let {email, password} = req.body
+        
+        let user = await User.findByEmail(email)
+
+        if(user) {
+
+            let isValidPassword = await bcrypt.compare(password, user.password)
+
+            if(isValidPassword) {
+                let token = jwt.sign({ email: user.email, role: user.role }, secret);
+                res.status(200)
+                res.json({token})
+            } else {
+                res.status(400)
+                res.json({err: "Senha incorreta"})
+            }
+
+        } else {
+            res.status(404)
+            res.json({err: "Usuário não identificado"})
+        }
+
     }
 
 }
