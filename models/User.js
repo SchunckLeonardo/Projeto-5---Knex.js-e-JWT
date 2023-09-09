@@ -51,47 +51,53 @@ class User {
         let findedUser = await this.findById(user.id)
         let registeredEmail = await this.validationEmail(user.email)
 
-        if(findedUser != undefined) {
+        if (findedUser != undefined) {
 
-            if(user.email != undefined) {
-                if(user.email != findedUser.email) {
-                    if(registeredEmail) {
-                        return {status: false, err: "O e-mail já está cadastrado!"}
+            if (user.email != undefined) {
+                if (user.email != findedUser.email) {
+                    if (registeredEmail) {
+                        return { status: false, err: "O e-mail já está cadastrado!" }
                     } else {
                         editUser.email = user.email
                     }
                 }
             }
 
-            if(user.name != undefined) {
+            if (user.name != undefined) {
                 editUser.name = user.name
             }
 
-            if(user.role != undefined) {
+            if (user.role != undefined) {
                 editUser.role = user.role
             }
 
             try {
-                await knex.update(editUser).where({id: user.id}).from('users')
-                return {status: true}
-            } catch(err) {
+                await knex.update(editUser).where({ id: user.id }).from('users')
+                return { status: true }
+            } catch (err) {
                 console.log(err)
-                return {status: false}
+                return { status: false }
             }
 
         } else {
-            return {status: false, err: "O usuário não foi encontrado"}
+            return { status: false, err: "O usuário não foi encontrado" }
         }
 
     }
 
     async deleteUser(id) {
         try {
-            await knex.select("*").where({id}).from("users").del()
-            return true
-        } catch(err) {
+            let user = await this.findById(id)
+
+            if (user.length > 0 ) {
+                await knex.select("*").where({ id }).from("users").del()
+                return { status: true }
+            } else {
+                return { status: false, err: "Insira um ID válido" }
+            }
+        } catch (err) {
             console.log(err)
-            return false
+            return { status: false, err: "Aconteceu um erro" }
         }
     }
 

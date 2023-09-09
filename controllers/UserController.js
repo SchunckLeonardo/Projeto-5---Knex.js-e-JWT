@@ -109,6 +109,25 @@ class UserController {
         }
     }
 
+    async delete(req, res) {
+        let id = req.params.id
+
+        if(isNaN(id)) {
+            res.status(404)
+            res.json({err: "O id tem que ser um número"})
+            return
+        }
+
+        let deletedUser = await User.deleteUser(id)
+        if(deletedUser.status) {
+            res.status(200)
+            res.send("O usuário foi deletado")
+        } else {
+            res.status(400)
+            res.send(deletedUser.err)
+        }
+    }
+
 }
 
 module.exports = new UserController()
