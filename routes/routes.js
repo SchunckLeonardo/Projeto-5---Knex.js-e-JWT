@@ -9,5 +9,7 @@ router.get('/user', UserController.findAllUsers)
 router.get('/user/:id', UserController.findUserById)
 router.put('/user/:id', UserController.update)
 router.delete('/user/:id', UserController.delete)
+router.post('/recoverpassword', UserController.recoverPassword)
+router.post('/changepassword/:token', UserController.changePassword)
 
 module.exports = router

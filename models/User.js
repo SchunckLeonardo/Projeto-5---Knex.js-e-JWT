@@ -16,11 +16,26 @@ class User {
 
     async findById(id) {
         try {
-            let user = knex.select(["id", "name", "email", "role"]).where({ id }).from('users')
+            let user = await knex.select(["id", "name", "email", "role"]).where({ id }).from('users')
             if (user.length > 0) {
-                return undefined
+                return user[0]
             } else {
-                return user
+                return undefined
+            }
+
+        } catch (err) {
+            console.log(err)
+            return undefined
+        }
+    }
+
+    async findByEmail(email) {
+        try {
+            let user = await knex.select(["id", "name", "email", "role"]).where({ email }).from('users')
+            if (user.length > 0) {
+                return user[0]
+            } else {
+                return undefined
             }
 
         } catch (err) {
@@ -89,7 +104,7 @@ class User {
         try {
             let user = await this.findById(id)
 
-            if (user.length > 0 ) {
+            if (user) {
                 await knex.select("*").where({ id }).from("users").del()
                 return { status: true }
             } else {
@@ -103,7 +118,7 @@ class User {
 
     async validationEmail(email) {
         try {
-            let userEmail = await knex.select("*").from('users').where({ email })
+            let userEmail = await knex.select("*").where({ email }).table('users')
             if (userEmail.length > 0) {
                 return true
             } else {
@@ -112,6 +127,15 @@ class User {
         } catch (err) {
             console.log(err)
             return false
+        }
+    }
+
+    async newPassword(newPassword, id) {
+        try {
+            let hash = await bcrypt.hash(newPassword, 10)
+            await knex('users').where({ id }).update({ password: hash })
+        } catch (err) {
+            console.log(err)
         }
     }
 

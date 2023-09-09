@@ -1,4 +1,6 @@
 let User = require('../models/User')
+let PasswordToken = require('../models/PasswordToken')
+let Validation = require('../models/Validation')
 
 class UserController {
 
@@ -10,14 +12,6 @@ class UserController {
         } catch (err) {
             console.log(err)
         }
-    }
-
-    async findUserByEmail(req, res) {
-        let email = req.params.email
-
-        let user = await User.findByEmail(email)
-        res.status(200)
-        res.json(user)
     }
 
     async findUserById(req, res) {
@@ -43,27 +37,19 @@ class UserController {
             password
         }
 
-        let fieldValidation = field => {
-            if (field == undefined || field == "" || field == " ") {
-                return true
-            } else {
-                return false
-            }
-        }
-
-        if (fieldValidation(email)) {
+        if (Validation.fieldValidation(email)) {
             res.status(400)
             res.json({ err: "O e-mail é inválido!" })
             return
         }
 
-        if (fieldValidation(name)) {
+        if (Validation.fieldValidation(name)) {
             res.status(400)
             res.json({ err: "O nome é inválido!" })
             return
         }
 
-        if (fieldValidation(password)) {
+        if (Validation.fieldValidation(password)) {
             res.status(400)
             res.json({ err: "A senha é inválida!" })
             return
@@ -84,7 +70,7 @@ class UserController {
     }
 
     async update(req, res) {
-        let {name, email, role} = req.body
+        let { name, email, role } = req.body
         let id = req.params.id
         let user = {
             id,
@@ -93,14 +79,14 @@ class UserController {
             role
         }
 
-        if(isNaN(id)) {
+        if (isNaN(id)) {
             res.status(404)
-            res.json({err: "O id tem que ser um número"})
+            res.json({ err: "O id tem que ser um número" })
             return
         }
 
         let updatedUser = await User.updateUser(user)
-        if(updatedUser.status) {
+        if (updatedUser.status) {
             res.status(200)
             res.send("Atualizado com sucesso!")
         } else {
@@ -112,19 +98,59 @@ class UserController {
     async delete(req, res) {
         let id = req.params.id
 
-        if(isNaN(id)) {
+        if (isNaN(id)) {
             res.status(404)
-            res.json({err: "O id tem que ser um número"})
+            res.json({ err: "O id tem que ser um número" })
             return
         }
 
         let deletedUser = await User.deleteUser(id)
-        if(deletedUser.status) {
+        if (deletedUser.status) {
             res.status(200)
             res.send("O usuário foi deletado")
         } else {
             res.status(400)
             res.send(deletedUser.err)
+        }
+    }
+
+    async recoverPassword(req, res) {
+        let email = req.body.email
+        if (Validation.fieldValidation(email)) {
+            res.status(400)
+            res.send("O e-mail é inválido!")
+            return
+        }
+
+        let tokenGenerated = await PasswordToken.createToken(email)
+
+        if (tokenGenerated.status) {
+            res.status(200)
+            res.send(tokenGenerated.token)
+        } else {
+            res.status(406)
+            res.send(tokenGenerated.err)
+        }
+
+    }
+
+    async changePassword(req, res) {
+        let token = req.params.token
+        let password = req.body.password
+        if (Validation.fieldValidation(password)) {
+            res.status(400)
+            res.send("A senha é inválida!")
+            return
+        }
+
+        let isValidToken = await PasswordToken.validateToken(token)
+        if (isValidToken.status) {
+            await User.newPassword(password, isValidToken.token.user_id)
+            res.status(200)
+            res.send('Senha alterada com sucesso!')
+        } else {
+            res.status(406)
+            res.send(isValidToken.err)
         }
     }
 
